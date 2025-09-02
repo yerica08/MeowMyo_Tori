@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SK 최소 재현 테스트</title>
+  <style>
+    body{font-family:system-ui;padding:20px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+    section{border:1px solid #eee;border-radius:12px;padding:12px}
+  </style>
+</head>
+<body>
+  <h1>SociableKit 최소 테스트</h1>
+  <div class="grid">
+    <section>
+      <h3>유튜브</h3>
+      <div class="sk-ww-youtube-channel-videos" data-embed-id="25594678"></div>
+      <script src='https://widgets.sociablekit.com/youtube-channel-videos/widget.js' defer></script>
+    </section>
+    <section>
+      <h3>인스타</h3>
+      <div class="sk-instagram-feed" data-embed-id="25594666"></div>
+      <script src='https://widgets.sociablekit.com/instagram-feed/widget.js' defer></script>
+    </section>
+  </div>
+</body>
+</html>
