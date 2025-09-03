@@ -65,6 +65,8 @@
     // 로그인
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const redirectTo = "https://meowmyo.com/auth/auth-test.html"; // Supabase에 허용 추가해둔 그 주소
+      scopes: 'public_profile' // email 제거
+      
       const { error } = await client.auth.signInWithOAuth({
         provider: 'facebook',
         options: { redirectTo }
