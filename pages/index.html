@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>묘묘다꾸 — 홈</title>
+  <meta name="description" content="여러 고양이 팬덤 디렉터리" />
+  
+  <!-- 마스터페이지 스타일 -->
+  <link rel="stylesheet" href="../master.css">
+  
+  <!-- 간단 파비콘(404 방지) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E🐱%3C/text%3E%3C/svg%3E">
+  
+  <style>
+    /* 디렉터리 전용 스타일 */
+    .wrap{ max-width:980px; margin:0 auto; padding:20px }
+    .card{ background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.04) }
+    .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px }
+    .muted{ color:var(--sub); font-size:14px }
+    .tag{ display:inline-flex; align-items:center; gap:6px; background:var(--brand2); border-radius:999px; padding:4px 8px; font-size:12px; border:1px solid var(--brand) }
+    .user-card{ cursor:pointer; transition:transform .2s,box-shadow .2s }
+    .user-card:hover{ transform:translateY(-2px); box-shadow:0 12px 32px rgba(0,0,0,.08) }
+    .user-card img{ width:100%; height:200px; object-fit:cover; border-radius:12px }
+    .user-card h3{ margin:.5rem 0 0; color:var(--ink) }
+    .user-card p{ margin:.25rem 0 0; color:var(--sub); font-size:14px }
+  </style>
+</head>
+<body>
+  <!-- 마스터페이지 헤더 -->
+  <header class="master-header">
+    <div id="master-header"></div>
+  </header>
+
+  <!-- 페이지 콘텐츠 -->
+  <main class="page-content">
+    <div class="wrap">
+      <div class="card">
+        <h1 style="margin-top:0">🐱 고양이 팬덤 디렉터리</h1>
+        <p class="muted">여러 고양이들의 프로필을 둘러보세요. 각 고양이를 클릭하면 상세 프로필로 이동합니다.</p>
+        
+        <div id="directory-list" class="grid" aria-live="polite">
+          <!-- 사용자 목록이 여기에 렌더링됩니다 -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 마스터페이지 푸터 -->
+  <footer class="master-footer">
+    <div id="master-footer"></div>
+  </footer>
+
+  <!-- 마스터페이지 스크립트 -->
+  <script src="../master.js"></script>
+  
+  <script>
+    // ===== 데이터(디렉터리) =====
+    const USERS = [
+      { id:"myomyo", name:"묘묘",  bio:"둥글둥글 꿀잠 마스터", tags:["꿀잠","먹방"], thumb:"https://placekitten.com/420/280" },
+      { id:"nabi",   name:"나비",  bio:"창밖 구경과 깃털 사냥", tags:["장난감","여행"], thumb:"https://placekitten.com/421/281" },
+      { id:"sori",   name:"소리",  bio:"츄르 평가단장", tags:["먹방"], thumb:"https://placekitten.com/422/282" }
+    ];
+
+    // ===== 공통 유틸 =====
+    // $와 $$ 함수는 master.js에서 이미 정의됨
+
+    // ===== 디렉터리 렌더링 =====
+    function renderDirectory() {
+      const list = $('#directory-list');
+      if (!list) return;
+      
+      list.innerHTML = USERS.map(user => `
+        <article class="card user-card" onclick="loadUserProfile('${user.id}')">
+          <img src="${user.thumb}" alt="${user.name} 썸네일" loading="lazy">
+          <h3>${user.name}</h3>
+          <p>${user.bio}</p>
+          <div style="margin-top:8px">
+            ${user.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // ===== 사용자 프로필 로드 =====
+    function loadUserProfile(userId) {
+      window.location.href = `profile.html?u=${encodeURIComponent(userId)}`;
+    }
+
+    // ===== 이벤트 설정 =====
+    function setupEvents() {
+      // 사용자 카드 클릭 이벤트는 onclick으로 처리됨
+    }
+
+    // ===== 초기화 =====
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEvents();
+      renderDirectory();
+    });
+  </script>
+</body>
+</html>

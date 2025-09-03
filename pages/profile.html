@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>묘묘다꾸 — 프로필</title>
+  <meta name="description" content="고양이 프로필 페이지" />
+
+  <!-- 마스터페이지 스타일 -->
+  <link rel="stylesheet" href="../master.css">
+  
+  <!-- Instagram oEmbed -->
+  <script async src="https://www.instagram.com/embed.js"></script>
+
+  <style>
+    /* 프로필 페이지 전용 스타일 */
+    .wrap{ max-width:980px; margin:0 auto; padding:20px }
+    .card{ background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.04) }
+    .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px }
+    .muted{ color:var(--sub); font-size:14px }
+    .btn{ appearance:none; border:1px solid var(--line); background:var(--paper); padding:8px 12px; border-radius:10px; cursor:pointer }
+    .btn.primary{ border-color:var(--brand); background:linear-gradient(180deg,#fff,var(--brand2)); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }
+    .input, textarea, select{ width:100%; padding:10px; border:1px solid var(--line); border-radius:10px; background:#fff }
+    .pill{ display:inline-flex; align-items:center; gap:6px; background:#f6f6f6; border-radius:999px; padding:4px 8px; font-size:12px; border:1px solid var(--line) }
+    .tag{ display:inline-flex; align-items:center; gap:6px; background:var(--brand2); border-radius:999px; padding:4px 8px; font-size:12px; border:1px solid var(--brand) }
+    .paper-edge{ position:relative }
+    .paper-edge:after{ content:""; position:absolute; inset:0; border-radius:16px; background:repeating-linear-gradient(45deg, transparent 0 10px, rgba(255,180,200,.2) 10px 20px); mask:linear-gradient(#000,#000) content-box, linear-gradient(#000,#000); mask-composite:exclude; padding:1px; border:1px solid transparent }
+    .ghost{ opacity:.6 }
+    .hide{ display:none }
+    figure{ margin:0 }
+    img{ max-width:100%; height:auto; border-radius:12px; border:1px solid var(--line); display:block }
+  </style>
+</head>
+<body>
+  <!-- 마스터페이지 헤더 -->
+  <header class="master-header">
+    <div id="master-header"></div>
+  </header>
+
+  <!-- 페이지 콘텐츠 -->
+  <main class="page-content">
+    <div class="wrap">
+      <!-- 프로필 홈 -->
+      <section id="page-home" class="page">
+        <div class="card paper-edge">
+          <div class="row" style="align-items:center;justify-content:space-between">
+            <h2 id="hero-title" style="margin:0">오늘의 고양이 🐾</h2>
+            <span class="tag"><span aria-hidden>✨</span> 랜덤 카드</span>
+          </div>
+          <div class="row" style="margin-top:12px;align-items:flex-start">
+            <figure style="flex:1 1 320px;max-width:520px">
+              <img id="hero-img" alt="오늘의 고양이 사진" src="https://placekitten.com/640/420"/>
+              <figcaption class="muted" id="hero-caption">랜덤 고양이 플레이스홀더 (나중에 인스타/갤러리 연동)</figcaption>
+            </figure>
+            <div style="flex:1 1 240px;min-width:240px">
+              <p id="fortune" style="font-size:18px;line-height:1.5">운세 로딩중…</p>
+              <div class="row">
+                <button class="btn primary" id="btn-refresh">오늘 카드 새로 뽑기</button>
+                <button class="btn" id="btn-swap">사진 바꾸기</button>
+              </div>
+              <p class="muted" style="margin-top:8px">※ 아래에 유튜브/인스타 최신 포스트 자동 노출</p>
+            </div>
+          </div>
+
+          <hr style="margin:18px 0;border:none;border-top:1px dashed var(--line)">
+          <div class="row" style="gap:16px;align-items:flex-start;flex-wrap:wrap">
+            <section style="flex:1 1 420px;min-width:320px" aria-labelledby="yt-title">
+              <h3 id="yt-title" style="margin:6px 0">유튜브 최신 영상 ▶</h3>
+              <div id="yt-latest" class="grid" aria-live="polite"></div>
+            </section>
+            <section style="flex:1 1 420px;min-width:320px" aria-labelledby="ig-title">
+              <h3 id="ig-title" style="margin:6px 0">인스타 최신 포스트 ♡</h3>
+              <div id="ig-latest" class="grid" aria-live="polite"></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- 프로필: 아카이브 -->
+      <section id="page-archive" class="page hide">
+        <div class="card">
+          <div class="row" style="align-items:center;justify-content:space-between">
+            <h2 style="margin:0">아카이브 📂</h2>
+            <div class="row">
+              <select id="filter-year" aria-label="연도 선택" class="input" style="max-width:140px"></select>
+              <select id="filter-tag" aria-label="카테고리 선택" class="input" style="max-width:160px"></select>
+            </div>
+          </div>
+          <p class="muted">연도/카테고리별로 정리된 기록. (데모 데이터 → 추후 인스타/유튜브 연동)</p>
+          <div id="archive-list" class="grid" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- 프로필: 방명록 -->
+      <section id="page-guestbook" class="page hide">
+        <div class="card">
+          <h2 style="margin-top:0">방명록 ✍️</h2>
+          <p class="muted">손글씨 느낌 + 스티커로 메시지를 남겨보세요. (로컬 저장) </p>
+          <form id="guest-form" class="card" style="margin:10px 0;display:grid;gap:10px">
+            <div class="row">
+              <input class="input" id="nick" placeholder="닉네임" required aria-label="닉네임" style="max-width:220px"/>
+              <select id="sticker" class="input" aria-label="스티커 선택" style="max-width:220px">
+                <option>🐾 발바닥</option>
+                <option>🐱 고양이</option>
+                <option>✨ 반짝</option>
+                <option>🎀 리본</option>
+                <option>🍓 딸기</option>
+              </select>
+            </div>
+            <textarea id="msg" placeholder="메시지" required aria-label="메시지"></textarea>
+            <div class="row" style="justify-content:space-between;align-items:center">
+              <button class="btn primary" type="submit">남기기</button>
+              <button class="btn" type="button" id="clear-guestbook">모두 지우기</button>
+            </div>
+          </form>
+          <div id="guest-list" class="grid" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- 프로필: 보너스 -->
+      <section id="page-goodies" class="page hide">
+        <div class="card">
+          <div class="row" style="align-items:center;justify-content:space-between">
+            <h2 style="margin:0">보너스 🎁</h2>
+            <span class="tag">coming soon</span>
+          </div>
+          <p class="muted">스티커팩(PNG/굿노트) 무료 배포, 배경화면 등</p>
+          <ul>
+            <li>스티커팩 v0: <span class="ghost">업로드 예정</span></li>
+            <li>배경화면 v0: <span class="ghost">업로드 예정</span></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- 마스터페이지 푸터 -->
+  <footer class="master-footer">
+    <div id="master-footer"></div>
+  </footer>
+
+  <!-- 마스터페이지 스크립트 -->
+  <script src="../master.js"></script>
+  
+  <script>
+    // ===== 데이터(디렉터리) =====
+    const USERS = [
+      { id:"myomyo", name:"묘묘",  bio:"둥글둥글 꿀잠 마스터", tags:["꿀잠","먹방"], thumb:"https://placekitten.com/420/280",
+        yt:{ fallback:[/* 예: "dQw4w9WgXcQ" */] },
+        ig:{ posts:[ /* 예: "https://www.instagram.com/p/BA_FzzwjgV/" */ ] },
+        archive:[
+          { id:1, y:2025, tag:'먹방',   title:'츄르 시식회',   img:'https://placekitten.com/420/280', note:'첫 츄르 리뷰', date:'2025-08-12' },
+          { id:2, y:2025, tag:'꿀잠',   title:'식빵자세 마스터', img:'https://placekitten.com/421/281', note:'햇살 스팟 발견', date:'2025-07-30' }
+        ]
+      },
+      { id:"nabi",   name:"나비",  bio:"창밖 구경과 깃털 사냥", tags:["장난감","여행"], thumb:"https://placekitten.com/421/281",
+        yt:{ fallback:[] }, ig:{ posts:[] }, archive:[
+          { id:3, y:2024, tag:'장난감', title:'낚시대 격파', img:'https://placekitten.com/422/282', note:'깃털 분해함', date:'2024-12-02' }
+        ]
+      },
+      { id:"sori",   name:"소리",  bio:"츄르 평가단장", tags:["먹방"], thumb:"https://placekitten.com/422/282",
+        yt:{ fallback:[] }, ig:{ posts:[] }, archive:[
+          { id:4, y:2024, tag:'패션', title:'리본데이', img:'https://placekitten.com/423/283', note:'분홍 리본 시도', date:'2024-10-03' }
+        ]
+      }
+    ];
+
+    // ===== 공통 유틸 =====
+    // $와 $$ 함수는 master.js에서 이미 정의됨
+    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+    function qs(){ return new URLSearchParams(location.search) }
+
+    // ===== 인스타 URL 보정 =====
+    function normalizeInstaPermalink(u){
+      try{
+        const url = new URL(u); const clean = url.pathname.replace(/\/+$/,'');
+        const m = clean.match(/(?:^|\/)(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
+        if(m) return `https://www.instagram.com/${clean.split('/')[1]}/${m[1]}/`;
+        const m2 = clean.match(/share\/p\/([A-Za-z0-9_-]+)/);
+        if(m2) return `https://www.instagram.com/p/${m2[1]}/`;
+      }catch(e){}
+      return u;
+    }
+
+    // ===== YouTube 임베드 =====
+    function normalizeYtId(input){
+      try{
+        if(/^[A-Za-z0-9_-]{6,}$/.test(input)) return input;
+        const url=new URL(input); const m1=url.pathname.match(/shorts\/([A-Za-z0-9_-]+)/); if(m1) return m1[1];
+        const v=url.searchParams.get('v'); if(v) return v; const m2=url.pathname.match(/embed\/([A-Za-z0-9_-]+)/); if(m2) return m2[1];
+      }catch(e){}
+      return input;
+    }
+    function ytIframeById(id){
+      const vid = normalizeYtId(id);
+      const url = `https://www.youtube.com/embed/${vid}?rel=0`;
+      return `<div class="card"><div style="position:relative;padding-top:56.25%"><iframe title="YouTube" src="${url}" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px"></iframe></div></div>`;
+    }
+
+    // ===== 프로필(페이지들) 렌더 =====
+    const FORTUNES=["오늘은 상자 탐험이 대박! 📦","간식 협상에 유리한 날 🍗","낮잠이 약— 3회 이상 추천 😴","창가 햇살 스팟 선점 ☀️","빗질 타이밍 좋음 ✂️","낚시대 히트 확률 ↑ 🎣"];
+    function setFortune(){ $('#fortune').textContent = pick(FORTUNES) }
+    function swapHero(){ const w=480+Math.floor(Math.random()*240), h=320+Math.floor(Math.random()*200); $('#hero-img').src=`https://placekitten.com/${w}/${h}`; $('#hero-caption').textContent='플레이스홀더 — 나중에 갤러리/인스타 연동'; }
+
+    function renderArchive(list){ 
+      const wrap=$('#archive-list'); 
+      if (!wrap) return;
+      
+      wrap.innerHTML=''; 
+      list.forEach(item=>{ 
+        const el=document.createElement('article'); 
+        el.className='card'; 
+        el.innerHTML=`<figure><img src="${item.img}" alt="${item.title}"><figcaption class='muted'>${item.date} · ${item.tag}</figcaption></figure><h3 style='margin:.5rem 0 0'>${item.title}</h3><p class='muted'>${item.note}</p>`; 
+        wrap.appendChild(el) 
+      }) 
+    }
+    
+    function setupArchiveFilters(list){ 
+      const years=[...new Set(list.map(x=>x.y))].sort((a,b)=>b-a); 
+      const tags=[...new Set(list.map(x=>x.tag))]; 
+      const $y=$('#filter-year'), $t=$('#filter-tag'); 
+      if (!$y || !$t) return;
+      
+      $y.innerHTML='<option value="all">전체 연도</option>'+years.map(y=>`<option>${y}</option>`).join(''); 
+      $t.innerHTML='<option value="all">전체 카테고리</option>'+tags.map(t=>`<option>${t}</option>`).join(''); 
+      function apply(){ 
+        const yv=$y.value, tv=$t.value; 
+        const filtered=list.filter(x=>(yv==='all'||x.y==yv)&&(tv==='all'||x.tag===tv)); 
+        renderArchive(filtered) 
+      } 
+      $y.onchange=$t.onchange=apply; 
+      apply() 
+    }
+
+    const GKEY='guestbook.v1'; const storage={ get(k,f){ try{ return JSON.parse(localStorage.getItem(k))??f }catch{ return f } }, set(k,v){ localStorage.setItem(k, JSON.stringify(v)) } };
+    function renderGuest(){ 
+      const list=storage.get(GKEY,[]); 
+      const wrap=$('#guest-list'); 
+      if (!wrap) return;
+      
+      wrap.innerHTML=''; 
+      if(!list.length){ 
+        wrap.innerHTML='<p class="muted">아직 메시지가 없어요. 첫 메시지를 남겨보세요! ✨</p>'; 
+        return; 
+      } 
+      list.forEach(x=>{ 
+        const el=document.createElement('article'); 
+        el.className='card paper-edge'; 
+        el.innerHTML=`<div class='row' style='justify-content:space-between;align-items:center'><strong>${x.nick}</strong><span class='tag'>${x.sticker}</span></div><p style='white-space:pre-wrap'>${x.msg}</p><div class='muted'>${new Date(x.ts).toLocaleString()}</div>`; 
+        wrap.appendChild(el) 
+      }) 
+    }
+
+    // ===== 인스타/유튜브 섹션 렌더 =====
+    function renderInstagram(posts){ 
+      const box=$('#ig-latest'); 
+      if(!box) return; 
+      const urls=(posts||[]); 
+      if(!urls.length){ 
+        box.innerHTML="<p class='muted'>포스트 URL을 사용자 설정에 추가하세요.</p>"; 
+        return; 
+      } 
+      box.innerHTML = urls.map(raw=>{ 
+        const permalink=normalizeInstaPermalink(raw); 
+        return `<blockquote class='instagram-media' data-instgrm-permalink='${permalink}' data-instgrm-version='14' style='background:#FFF;border:0;margin:0 auto;max-width:540px;width:100%;border-radius:12px;'></blockquote>` 
+      }).join(''); 
+      if(window.instgrm && window.instgrm.Embeds){ 
+        window.instgrm.Embeds.process(); 
+      }
+    }
+    
+    function renderYouTube(ids){ 
+      const box=$('#yt-latest'); 
+      if(!box) return; 
+      if(!ids||!ids.length){ 
+        box.innerHTML="<p class='muted'>표시할 영상이 없습니다. 사용자 설정에 ID를 추가하세요.</p>"; 
+        return; 
+      } 
+      box.innerHTML = ids.map(ytIframeById).join(''); 
+    }
+
+    // ===== 탭 전환 =====
+    function switchTab(name){ 
+      // 모든 페이지 숨기기
+      $$(".page").forEach(sec=>sec.classList.add('hide')); 
+      
+      // 선택된 페이지 보이기
+      $(`#page-${name}`)?.classList.remove('hide');
+      
+      // 현재 사용자 정보 가져오기
+      const currentUser = getCurrentUser();
+      if (!currentUser) return;
+      
+      // 탭별 초기화
+      switch(name) {
+        case 'home':
+          applyUser(currentUser);
+          break;
+        case 'archive':
+          setupArchiveFilters(currentUser.archive || []);
+          break;
+        case 'guestbook':
+          renderGuest();
+          break;
+      }
+    }
+
+    function applyUser(u){ // 헤더/타이틀
+      $('#hero-title').textContent = `오늘의 ${u.name} 🐾`;
+      $('#hero-img').alt = `오늘의 ${u.name} 사진`;
+      
+      // 홈 카드
+      setFortune(); swapHero();
+      // 아카이브
+      const list = (u.archive && u.archive.length) ? u.archive : [];
+      setupArchiveFilters(list.length?list:[{y:2025,tag:'안내',title:'첫 기록을 추가해 보세요',img:'https://placekitten.com/424/284',note:'데모 카드',date:new Date().toISOString().slice(0,10)}]);
+      // 방명록 렌더
+      renderGuest();
+      // 외부 섹션
+      renderYouTube(u.yt?.fallback||[]);
+      renderInstagram(u.ig?.posts||[]);
+      
+      // 마스터페이지 헤더 업데이트
+      if (window.updateMasterHeader) {
+        window.updateMasterHeader(u.name, pick(['간식확률 ↑','꿀잠데이','캣닢주의','박스매직','빗질OK']));
+      }
+    }
+
+    function currentUser(){ const slug=qs().get('u')||''; return USERS.find(u=>u.id===slug) }
+    function getCurrentUser() { return currentUser(); }
+
+    // ===== 이벤트 설정 =====
+    function setupEvents() {
+      // 홈 카드 버튼
+      $('#btn-refresh')?.addEventListener('click', setFortune);
+      $('#btn-swap')?.addEventListener('click', swapHero);
+      
+      // 방명록 폼
+      $('#guest-form')?.addEventListener('submit', e => {
+        e.preventDefault();
+        const nick = $('#nick').value.trim();
+        const msg = $('#msg').value.trim();
+        const sticker = $('#sticker').value;
+        if (!nick || !msg) return;
+        
+        const list = storage.get(GKEY, []);
+        list.unshift({nick, msg, sticker, ts: Date.now()});
+        storage.set(GKEY, list);
+        e.target.reset();
+        renderGuest();
+      });
+      
+      $('#clear-guestbook')?.addEventListener('click', () => {
+        if (confirm('방명록을 전부 삭제할까요? (로컬에 저장된 데이터만 삭제됩니다)')) {
+          storage.set(GKEY, []);
+          renderGuest();
+        }
+      });
+    }
+
+    // ===== 초기화 =====
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEvents();
+      
+      // URL 파라미터에서 사용자와 탭 정보 가져오기
+      const user = currentUser();
+      const tab = qs().get('tab') || 'home';
+      
+      if (user) {
+        // 사용자 정보 적용
+        applyUser(user);
+        
+        // 탭 전환
+        switchTab(tab);
+      } else {
+        // 사용자가 없으면 디렉터리로 리다이렉트
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>
