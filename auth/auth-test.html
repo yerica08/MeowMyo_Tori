@@ -64,11 +64,12 @@
 
     // 로그인
     document.getElementById('loginBtn').addEventListener('click', async () => {
-        const { error } = await client.auth.signInWithOAuth({
+        const { data, error } = await client.auth.signInWithOAuth({
           provider: 'facebook',
           options: {
             redirectTo: 'https://meowmyo.com/auth/auth-test.html',
-            scopes: 'public_profile'   // ← email 없이 테스트
+            scopes: 'public_profile',                 // <- email 제거
+            queryParams: { scope: 'public_profile' }  // <- 혹시 남아있는 기본값까지 강제 덮어쓰기
           }
         });
         if (error) alert(error.message);
