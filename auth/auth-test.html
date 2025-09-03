@@ -64,15 +64,15 @@
 
     // 로그인
     document.getElementById('loginBtn').addEventListener('click', async () => {
-      const redirectTo = "https://meowmyo.com/auth/auth-test.html"; // Supabase에 허용 추가해둔 그 주소
-      scopes: 'public_profile' // email 제거
-      
-      const { error } = await client.auth.signInWithOAuth({
-        provider: 'facebook',
-        options: { redirectTo }
+        const { error } = await client.auth.signInWithOAuth({
+          provider: 'facebook',
+          options: {
+            redirectTo: 'https://meowmyo.com/auth/auth-test.html',
+            scopes: 'public_profile'   // ← email 없이 테스트
+          }
+        });
+        if (error) alert(error.message);
       });
-      if (error) alert(error.message);
-    });
 
     // 로그아웃
     document.getElementById('logoutBtn').addEventListener('click', async () => {
