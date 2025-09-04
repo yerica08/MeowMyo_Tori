@@ -14,7 +14,7 @@
   </style>
 </head>
 <body>
-  <div id="profile" style="display:flex;align-items:center;gap:8px;display:none">
+  <div id="profile" style="display:none;align-items:center;gap:8px;">
     <img id="avatar" src="" alt="" style="width:28px;height:28px;border-radius:50%" />
     <span id="displayName"></span>
   </div>
@@ -38,7 +38,7 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://bmrrzooymvfgqnafwyxi.supabase.co";
-    const SUPABASE_ANON_KEY = "YOUR_ANON_KEY"; // 이미 쓰던 anon key
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtcnJ6b295bXZmZ3FuYWZ3eXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NzMxODYsImV4cCI6MjA3MjQ0OTE4Nn0.KKF9zYRAdaN4Q9TsiEWGWwg4UFzZ6ElEJf1bxfyhBF0"; // ← 진짜 anon 키!
 
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true, flowType: "pkce" }
@@ -65,9 +65,8 @@
       }
     }
 
-    // SDK가 세션을 교환한 직후 여기로 떨어짐
+    // 자동 교환 직후 URL 정리 + 렌더
     client.auth.onAuthStateChange((_event, session) => {
-      // 콜백 후 URL에 남는 code/access_token 제거
       const url = new URL(location.href);
       if (url.searchParams.has('code') || location.hash.includes('access_token')) {
         history.replaceState({}, document.title, location.pathname);
@@ -75,7 +74,7 @@
       render(session);
     });
 
-    // 최초 진입 상태 그리기
+    // 최초 렌더
     (async () => {
       const { data: { session } } = await client.auth.getSession();
       render(session);
@@ -87,7 +86,6 @@
         provider: 'facebook',
         options: {
           redirectTo: 'https://meowmyo.com/auth/auth-test.html',
-          // email 권한은 Supabase Provider에도 public_profile,email 로 저장되어 있어야 함
           scopes: 'public_profile,email'
         }
       });
