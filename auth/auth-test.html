@@ -14,7 +14,7 @@
   </style>
 </head>
 <body>
-  <div id="profile" style="display:none;align-items:center;gap:8px;">
+  <div id="profile" style="display:flex;align-items:center;gap:8px;display:none">
     <img id="avatar" src="" alt="" style="width:28px;height:28px;border-radius:50%" />
     <span id="displayName"></span>
   </div>
@@ -23,7 +23,7 @@
     <h1>Facebook 로그인 테스트</h1>
     <p>아래 버튼을 눌러 Supabase Auth(Facebook) 흐름을 확인해요.</p>
 
-    <div class="row" id="actions">
+    <div class="row">
       <button id="loginBtn">Facebook으로 로그인</button>
       <button id="logoutBtn" class="secondary">로그아웃</button>
     </div>
@@ -35,34 +35,14 @@
     <pre id="dump">{}</pre>
   </div>
 
-  <!-- supabase-js v2 (CDN) -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    // ⬇⬇ 네 프로젝트 값으로 유지 ⬇⬇
     const SUPABASE_URL = "https://bmrrzooymvfgqnafwyxi.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtcnJ6b295bXZmZ3FuYWZ3eXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NzMxODYsImV4cCI6MjA3MjQ0OTE4Nn0.KKF9zYRAdaN4Q9TsiEWGWwg4UFzZ6ElEJf1bxfyhBF0";
+    const SUPABASE_ANON_KEY = "YOUR_ANON_KEY"; // 이미 쓰던 anon key
 
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true, flowType: 'pkce' }
+      auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true, flowType: "pkce" }
     });
-
-    async function completeOAuthIfNeeded() {
-      const url = new URL(location.href);
-      const hasError = url.searchParams.has('error'); // 페북/서버 에러로 돌아온 경우
-      const hasCode  = url.searchParams.has('code');
-      const hasToken = location.hash.includes('access_token');
-
-      if (!hasError && (hasCode || hasToken)) {
-        const { error } = await client.auth.exchangeCodeForSession(url.href);
-        if (error) console.error('exchangeCodeForSession error:', error);
-        history.replaceState({}, document.title, location.pathname); // URL 정리
-      }
-    }
-
-    async function refresh() {
-      const { data: { session } } = await client.auth.getSession();
-      render(session);
-    }
 
     function render(session) {
       const statusEl = document.getElementById('status');
@@ -75,15 +55,31 @@
         const u = session.user;
         statusEl.textContent = `로그인됨: ${u.user_metadata?.name || u.email || u.id}`;
         dumpEl.textContent = JSON.stringify({ user: u, session }, null, 2);
-        displayName.textContent = u.user_metadata?.name ?? (u.email ?? '');
-        avatar.src = u.user_metadata?.avatar_url || u.user_metadata?.picture || '';
-        profile.style.display = 'flex';
+        displayName.textContent = u.user_metadata?.name ?? (u.email ?? "");
+        avatar.src = u.user_metadata?.avatar_url || u.user_metadata?.picture || "";
+        profile.style.display = "flex";
       } else {
-        statusEl.textContent = '로그아웃됨';
-        dumpEl.textContent = '{}';
-        profile.style.display = 'none';
+        statusEl.textContent = "로그아웃됨";
+        dumpEl.textContent = "{}";
+        profile.style.display = "none";
       }
     }
+
+    // SDK가 세션을 교환한 직후 여기로 떨어짐
+    client.auth.onAuthStateChange((_event, session) => {
+      // 콜백 후 URL에 남는 code/access_token 제거
+      const url = new URL(location.href);
+      if (url.searchParams.has('code') || location.hash.includes('access_token')) {
+        history.replaceState({}, document.title, location.pathname);
+      }
+      render(session);
+    });
+
+    // 최초 진입 상태 그리기
+    (async () => {
+      const { data: { session } } = await client.auth.getSession();
+      render(session);
+    })();
 
     // 로그인
     document.getElementById('loginBtn').addEventListener('click', async () => {
@@ -91,7 +87,8 @@
         provider: 'facebook',
         options: {
           redirectTo: 'https://meowmyo.com/auth/auth-test.html',
-          scopes: 'public_profile,email'  // ← 이메일 포함 (필수)
+          // email 권한은 Supabase Provider에도 public_profile,email 로 저장되어 있어야 함
+          scopes: 'public_profile,email'
         }
       });
       if (error) alert(error.message);
@@ -100,15 +97,9 @@
     // 로그아웃
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await client.auth.signOut();
-      await refresh();
+      const { data: { session } } = await client.auth.getSession();
+      render(session);
     });
-
-    client.auth.onAuthStateChange((_e, session) => render(session));
-
-    (async () => {
-      await completeOAuthIfNeeded();
-      await refresh();
-    })();
   </script>
 </body>
 </html>
