@@ -44,7 +44,30 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtcnJ6b295bXZmZ3FuYWZ3eXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NzMxODYsImV4cCI6MjA3MjQ0OTE4Nn0.KKF9zYRAdaN4Q9TsiEWGWwg4UFzZ6ElEJf1bxfyhBF0";
     // ⬆⬆ 여기를 네 값으로 바꿔주세요 ⬆⬆
 
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        detectSessionInUrl: true,
+        autoRefreshToken: true,
+        flowType: 'pkce'   // 명시
+      }
+    });
+    
+    async function completeOAuthIfNeeded() {
+      // 돌아온 URL에 code 또는 access_token이 있으면 세션으로 교환
+      const hasFrag = location.hash.includes('access_token');
+      const hasCode = location.search.includes('code=');
+    
+      if (hasFrag || hasCode) {
+        const { data, error } = await client.auth.exchangeCodeForSession(window.location.href);
+        if (error) console.error('exchangeCodeForSession error:', error);
+    
+        // 주소창에서 토큰 파라미터 제거
+        const clean = location.origin + location.pathname;
+        window.history.replaceState({}, document.title, clean);
+      }
+    }
+    
 
     // 페이지 진입 시: URL에 OAuth 코드가 있으면 supabase-js가 자동 처리
     // 그 후 getSession()으로 현재 상태 확인
@@ -99,7 +122,11 @@
     client.auth.onAuthStateChange((_e, session) => render(session));
 
     // 초기 로드
-    refresh();
+(async () => {
+  await completeOAuthIfNeeded();
+  await refresh();
+})();
+
   </script>
 </body>
 </html>
