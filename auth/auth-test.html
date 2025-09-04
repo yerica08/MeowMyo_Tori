@@ -15,6 +15,11 @@
   </style>
 </head>
 <body>
+  <div id="profile" style="display:none;align-items:center;gap:8px;">
+    <img id="avatar" src="" alt="" style="width:28px;height:28px;border-radius:50%" />
+    <span id="displayName"></span>
+  </div>
+
   <div class="card">
     <h1>Facebook 로그인 테스트</h1>
     <p>아래 버튼을 눌러 Supabase Auth(Facebook) 흐름을 확인해요.</p>
@@ -49,18 +54,27 @@
     }
 
     function render(session) {
-      const statusEl = document.getElementById('status');
-      const dumpEl = document.getElementById('dump');
+  const statusEl = document.getElementById('status');
+  const dumpEl = document.getElementById('dump');
+  const profile = document.getElementById('profile');
+  const avatar = document.getElementById('avatar');
+  const displayName = document.getElementById('displayName');
 
-      if (session?.user) {
-        const u = session.user;
-        statusEl.textContent = `로그인됨: ${u.user_metadata?.name || u.email || u.id}`;
-        dumpEl.textContent = JSON.stringify({ user: u, session }, null, 2);
-      } else {
-        statusEl.textContent = "로그아웃됨";
-        dumpEl.textContent = "{}";
-      }
-    }
+  if (session?.user) {
+    const u = session.user;
+    statusEl.textContent = `로그인됨: ${u.user_metadata?.name || u.id}`;
+    dumpEl.textContent = JSON.stringify({ user: u, session }, null, 2);
+
+    displayName.textContent = u.user_metadata?.name ?? '';
+    avatar.src = u.user_metadata?.avatar_url || u.user_metadata?.picture || '';
+    profile.style.display = 'flex';
+  } else {
+    statusEl.textContent = '로그아웃됨';
+    dumpEl.textContent = '{}';
+    profile.style.display = 'none';
+  }
+}
+
 
     // 로그인
     document.getElementById('loginBtn').addEventListener('click', async () => {
