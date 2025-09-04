@@ -10,7 +10,6 @@
     button{padding:10px 14px;border-radius:10px;border:1px solid #d1d5db;background:#111;color:#fff;cursor:pointer}
     button.secondary{background:#fff;color:#111}
     .row{display:flex;gap:10px;flex-wrap:wrap}
-    code{background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;padding:2px 6px}
     pre{background:#0b1020;color:#cde1ff;padding:14px;border-radius:10px;overflow:auto}
   </style>
 </head>
@@ -39,78 +38,64 @@
   <!-- supabase-js v2 (CDN) -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    // ⬇⬇ 여기를 네 값으로 바꿔주세요 ⬇⬇
+    // ⬇⬇ 네 프로젝트 값으로 유지 ⬇⬇
     const SUPABASE_URL = "https://bmrrzooymvfgqnafwyxi.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtcnJ6b295bXZmZ3FuYWZ3eXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NzMxODYsImV4cCI6MjA3MjQ0OTE4Nn0.KKF9zYRAdaN4Q9TsiEWGWwg4UFzZ6ElEJf1bxfyhBF0";
-    // ⬆⬆ 여기를 네 값으로 바꿔주세요 ⬆⬆
 
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession: true,
-        detectSessionInUrl: true,
-        autoRefreshToken: true,
-        flowType: 'pkce'   // 명시
-      }
+      auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true, flowType: 'pkce' }
     });
-    
+
     async function completeOAuthIfNeeded() {
-      // 돌아온 URL에 code 또는 access_token이 있으면 세션으로 교환
-      const hasFrag = location.hash.includes('access_token');
-      const hasCode = location.search.includes('code=');
-    
-      if (hasFrag || hasCode) {
-        const { data, error } = await client.auth.exchangeCodeForSession(window.location.href);
+      const url = new URL(location.href);
+      const hasError = url.searchParams.has('error'); // 페북/서버 에러로 돌아온 경우
+      const hasCode  = url.searchParams.has('code');
+      const hasToken = location.hash.includes('access_token');
+
+      if (!hasError && (hasCode || hasToken)) {
+        const { error } = await client.auth.exchangeCodeForSession(url.href);
         if (error) console.error('exchangeCodeForSession error:', error);
-    
-        // 주소창에서 토큰 파라미터 제거
-        const clean = location.origin + location.pathname;
-        window.history.replaceState({}, document.title, clean);
+        history.replaceState({}, document.title, location.pathname); // URL 정리
       }
     }
-    
 
-    // 페이지 진입 시: URL에 OAuth 코드가 있으면 supabase-js가 자동 처리
-    // 그 후 getSession()으로 현재 상태 확인
     async function refresh() {
       const { data: { session } } = await client.auth.getSession();
       render(session);
     }
 
     function render(session) {
-  const statusEl = document.getElementById('status');
-  const dumpEl = document.getElementById('dump');
-  const profile = document.getElementById('profile');
-  const avatar = document.getElementById('avatar');
-  const displayName = document.getElementById('displayName');
+      const statusEl = document.getElementById('status');
+      const dumpEl = document.getElementById('dump');
+      const profile = document.getElementById('profile');
+      const avatar = document.getElementById('avatar');
+      const displayName = document.getElementById('displayName');
 
-  if (session?.user) {
-    const u = session.user;
-    statusEl.textContent = `로그인됨: ${u.user_metadata?.name || u.id}`;
-    dumpEl.textContent = JSON.stringify({ user: u, session }, null, 2);
-
-    displayName.textContent = u.user_metadata?.name ?? '';
-    avatar.src = u.user_metadata?.avatar_url || u.user_metadata?.picture || '';
-    profile.style.display = 'flex';
-  } else {
-    statusEl.textContent = '로그아웃됨';
-    dumpEl.textContent = '{}';
-    profile.style.display = 'none';
-  }
-}
-
+      if (session?.user) {
+        const u = session.user;
+        statusEl.textContent = `로그인됨: ${u.user_metadata?.name || u.email || u.id}`;
+        dumpEl.textContent = JSON.stringify({ user: u, session }, null, 2);
+        displayName.textContent = u.user_metadata?.name ?? (u.email ?? '');
+        avatar.src = u.user_metadata?.avatar_url || u.user_metadata?.picture || '';
+        profile.style.display = 'flex';
+      } else {
+        statusEl.textContent = '로그아웃됨';
+        dumpEl.textContent = '{}';
+        profile.style.display = 'none';
+      }
+    }
 
     // 로그인
     document.getElementById('loginBtn').addEventListener('click', async () => {
-        const { data, error } = await client.auth.signInWithOAuth({
-          provider: 'facebook',
-          options: {
-            redirectTo: 'https://meowmyo.com/auth/auth-test.html',
-            scopes: 'public_profile',                 // <- email 제거
-            queryParams: { scope: 'public_profile' }  // <- 혹시 남아있는 기본값까지 강제 덮어쓰기
-          }
-        });
-        if (error) alert(error.message);
+      const { error } = await client.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: 'https://meowmyo.com/auth/auth-test.html',
+          scopes: 'public_profile,email'  // ← 이메일 포함 (필수)
+        }
       });
+      if (error) alert(error.message);
+    });
 
     // 로그아웃
     document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -118,15 +103,12 @@
       await refresh();
     });
 
-    // 상태 변화 리스너(다른 탭/새로고침 등)
     client.auth.onAuthStateChange((_e, session) => render(session));
 
-    // 초기 로드
-(async () => {
-  await completeOAuthIfNeeded();
-  await refresh();
-})();
-
+    (async () => {
+      await completeOAuthIfNeeded();
+      await refresh();
+    })();
   </script>
 </body>
 </html>
